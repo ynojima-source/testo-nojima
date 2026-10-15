@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打ち合わせ持ち物チェックリスト</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 30px 16px;
+    font-family: "Yu Gothic", "Meiryo", sans-serif;
+    background: #f4f6f8;
+    color: #333;
+  }
+
+  .container {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 28px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.06);
+  }
+
+  h1 {
+    margin: 0 0 8px;
+    font-size: 23px;
+    text-align: center;
+  }
+
+  .description {
+    margin: 0 0 24px;
+    text-align: center;
+    font-size: 13px;
+    color: #777;
+  }
+
+  .add-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #d5dbe1;
+    border-radius: 6px;
+    font-size: 15px;
+  }
+
+  button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .add-button {
+    background: #315f91;
+    color: white;
+    white-space: nowrap;
+  }
+
+  .add-button:hover { background: #244b75; }
+
+  .item-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 4px;
+    border-bottom: 1px solid #edf0f2;
+  }
+
+  .item input[type="checkbox"] {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: #315f91;
+  }
+
+  .item-label {
+    flex: 1;
+    overflow-wrap: anywhere;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .item-label.done {
+    color: #999;
+    text-decoration: line-through;
+  }
+
+  .delete-button {
+    padding: 6px 9px;
+    background: #fbeeee;
+    color: #b64b4b;
+    font-size: 12px;
+  }
+
+  .delete-button:hover { background: #f5dddd; }
+
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .count {
+    color: #777;
+    font-size: 13px;
+  }
+
+  .reset-button {
+    background: #e9edf1;
+    color: #444;
+  }
+
+  .reset-button:hover { background: #dce2e8; }
+
+  @media (max-width: 400px) {
+    .container { padding: 20px 15px; }
+    h1 { font-size: 20px; }
+    .add-button { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>打ち合わせ持ち物チェック</h1>
+  <p class="description">忘れ物がないか確認しましょう</p>
+
+  <form class="add-form" id="addForm">
+    <input
+      type="text"
+      id="itemInput"
+      placeholder="持ち物を入力してください"
+      maxlength="100"
+      aria-label="追加する持ち物"
+    >
+    <button type="submit" class="add-button">＋ 追加</button>
+  </form>
+
+  <ul class="item-list" id="itemList"></ul>
+
+  <div class="bottom">
+    <span class="count" id="count">未確認：0件</span>
+    <button type="button" class="reset-button" id="resetButton">
+      リセット
+    </button>
+  </div>
+</div>
+
+<script>
+  const initialItems = [
+    "会議資料",
+    "筆記用具",
+    "手帳・メモ帳",
+    "名刺",
+    "ノートパソコン",
+    "充電器",
+    "必要書類"
+  ];
+
+  let items = initialItems.map((name, index) => ({
+    id: index + 1,
+    name,
+    checked: false
+  }));
+
+  let nextId = items.length + 1;
+
+  const itemList = document.getElementById("itemList");
+  const itemInput = document.getElementById("itemInput");
+  const addForm = document.getElementById("addForm");
+  const count = document.getElementById("count");
+
+  function renderItems() {
+    itemList.replaceChildren();
+
+    items.forEach(item => {
+      const li = document.createElement("li");
+      li.className = "item";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = item.checked;
+      checkbox.setAttribute("aria-label", item.name + "を確認済みにする");
+
+      checkbox.addEventListener("change", () => {
+        item.checked = checkbox.checked;
+        renderItems();
+      });
+
+      const label = document.createElement("span");
+      label.className = "item-label" + (item.checked ? " done" : "");
+      label.textContent = item.name;
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "delete-button";
+      deleteButton.textContent = "削除";
+      deleteButton.setAttribute("aria-label", item.name + "を削除");
+
+      deleteButton.addEventListener("click", () => {
+        items = items.filter(entry => entry.id !== item.id);
+        renderItems();
+      });
+
+      li.append(checkbox, label, deleteButton);
+      itemList.appendChild(li);
+    });
+
+    const remaining = items.filter(item => !item.checked).length;
+    count.textContent = `未確認：${remaining}件 ／ 全${items.length}件`;
+  }
+
+  addForm.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const name = itemInput.value.trim();
+    if (!name) {
+      itemInput.focus();
+      return;
+    }
+
+    items.push({
+      id: nextId++,
+      name,
+      checked: false
+    });
+
+    itemInput.value = "";
+    renderItems();
+    itemInput.focus();
+  });
+
+  document.getElementById("resetButton").addEventListener("click", () => {
+    items.forEach(item => {
+      item.checked = false;
+    });
+    renderItems();
+  });
+
+  renderItems();
+</script>
+
+</body>
+</html>
