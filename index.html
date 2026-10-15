@@ -38,13 +38,44 @@
     color: #777;
   }
 
+  .meeting-datetime {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0 24px;
+  }
+
+  .datetime-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .datetime-field label {
+    font-size: 13px;
+    color: #555;
+    font-weight: 600;
+  }
+
+  .meeting-datetime input {
+    width: 100%;
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid #d5dbe1;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 14px;
+    background: #fff;
+  }
+
   .add-form {
     display: flex;
     gap: 8px;
     margin-bottom: 20px;
   }
 
-  input[type="text"] {
+  input[type="text"], input[type="date"], input[type="time"] {
     flex: 1;
     min-width: 0;
     padding: 11px 12px;
@@ -145,6 +176,17 @@
   <h1>打ち合わせ持ち物チェック</h1>
   <p class="description">忘れ物がないか確認しましょう</p>
 
+  <div class="meeting-datetime">
+    <div class="datetime-field">
+      <label for="meetingDate">打ち合わせ日</label>
+      <input type="date" id="meetingDate" aria-label="打ち合わせ日">
+    </div>
+    <div class="datetime-field">
+      <label for="meetingTime">開始時間</label>
+      <input type="time" id="meetingTime" aria-label="打ち合わせ開始時間">
+    </div>
+  </div>
+
   <form class="add-form" id="addForm">
     <input
       type="text"
@@ -189,6 +231,24 @@
   const itemInput = document.getElementById("itemInput");
   const addForm = document.getElementById("addForm");
   const count = document.getElementById("count");
+  const meetingDate = document.getElementById("meetingDate");
+  const meetingTime = document.getElementById("meetingTime");
+
+  // 日付・時間はブラウザ内に保存し、再読み込み後も維持します。
+  try {
+    meetingDate.value = localStorage.getItem("meetingChecklistDate") || "";
+    meetingTime.value = localStorage.getItem("meetingChecklistTime") || "";
+  } catch (error) {
+    // localStorageが使えない環境でも入力自体は利用できます。
+  }
+
+  meetingDate.addEventListener("change", () => {
+    try { localStorage.setItem("meetingChecklistDate", meetingDate.value); } catch (error) {}
+  });
+
+  meetingTime.addEventListener("change", () => {
+    try { localStorage.setItem("meetingChecklistTime", meetingTime.value); } catch (error) {}
+  });
 
   function renderItems() {
     itemList.replaceChildren();
